@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registration</title>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Register</h1>
+        <p>Заполните форму для регистрации</p>
+        <hr />
+        <p>
+            <label>Придаймайте юз:</label><br>
+            <input id="Lgn" name="login" />
+        </p>
+        <p>
+            <label>Придумайте пароль</label><br>
+            <input id="Psw" name="password" type="password" />
+        </p>
+        <button id="Register">Отправить</button>
+    </div>
+    <div class="container">
+        <h1>Login</h1>
+        <p>Заполните форму для входа в акаунт</p>
+        <hr />
+        <p>
+            <label>Логин:</label><br>
+            <input id="Lgn" name="login" />
+        </p>
+        <p>
+            <label>Пароль</label><br>
+            <input id="Psw" name="password" type="password" />
+        </p>
+        <button id="Register">Отправить</button>
+    </div>
+
+    <script>
+
+        $(document).ready(function () {
+            $("#Register").click(function () {
+                $.ajax({
+                    url: "http://localhost:3003/register",
+                    method: "POST",
+                    data: { login: document.getElementById('Lgn').value, password: document.getElementById('Psw').value },
+                    success: function (response) {
+                        if (response == "login is used") alert("Логин уже занят, придумайте другой")
+                        if (response == "pass") {
+                            alert("Вы успешно зарегестрированы")
+
+                        }
+                    },
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

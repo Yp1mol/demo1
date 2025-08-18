@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,minimum-scale=1">
+	<title>Login</title>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
+</head>
+
+<body>
+	<div class="flex">
+		<div class="m-10">
+			<h1 class="font-bold text-4xl">Register</h1>
+			<form action="/createuser" method="post">
+				<label for="username">
+					<i class="fas fa-user"></i>
+				</label>
+				<input class="bg-blue-50" type="text" name="user" placeholder="Username you'd use" id="user" required>
+				<p></p>
+				<label for="password">
+					<i class="fas fa-lock"></i>
+				</label>
+				<input class="bg-blue-50" type="password" name="pass" placeholder="Password you'd use" id="pass" required>
+				<input class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit"
+					value="Login">
+			</form>
+		</div>
+		<div class="ml-130 m-10">
+			<h1 class="font-bold text-4xl">Login</h1>
+			<form action="/auth" method="post">
+				<label for="username">
+					<i class="fas fa-user"></i>
+				</label>
+				<input class="bg-blue-50" type="text" name="username" placeholder="Username" id="username" required>
+				<p></p>
+				<label for="password">
+					<i class="fas fa-lock"></i>
+				</label>
+				<input class="bg-blue-50" type="password" name="password" placeholder="Password" id="password" required>
+				<input class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit"
+					value="Login">
+			</form>
+		</div>
+	</div>
+</body>
+
+</html>
