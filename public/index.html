@@ -1,122 +1,306 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Todo App</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        max-width: 800px;
-        margin: auto;
-      }
-      .todo {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 10px;
-      }
-      .completed {
-        text-decoration: line-through;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Todo App</h1>
-    <form id="todo-form">
-      <input type="text" id="todo-input" placeholder="Enter a new todo" />
-      <button type="submit">Add</button>
-    </form>
-    <div id="todo-list"></div>
 
-    <script>
-      const API_URL = "http://localhost:3200/todos";
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todo App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: auto;
+    }
 
-      const todoForm = document.getElementById("todo-form");
-      const todoInput = document.getElementById("todo-input");
-      const todoList = document.getElementById("todo-list");
+    .todo {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
 
-      todoForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const title = todoInput.value.trim();
-        if (title) {
-          const todo = { title };
-          await createTodo(todo);
-          todoInput.value = "";
-          loadTodos();
+    .completed {
+      text-decoration: line-through;
+    }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+</head>
+
+<body>
+  <el-dialog>
+    <dialog id="dialogWindowForRedact" aria-labelledby="dialog-title"
+      class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent">
+      <el-dialog-backdrop
+        class="fixed inset-0 bg-gray-900/50 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"></el-dialog-backdrop>
+      <div tabindex="0"
+        class="flex min-h-full items-end justify-center p-4 text-center focus:outline-none sm:items-center sm:p-0">
+        <el-dialog-panel
+          class="relative transform overflow-hidden rounded-lg bg-gray-800 text-left shadow-xl outline -outline-offset-1 outline-white/10 transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-lg data-closed:sm:translate-y-0 data-closed:sm:scale-95">
+          <form class="bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4" id="rewrite">
+            <h3 id="dialog-title" class="text-lg font-semibold text-white mb-2">Rewrite task</h3>
+            <p class="text-sm text-gray-400 mb-4">Enter the text and choose the status you want to change to:</p>
+            <input type="checkbox" id="tasksNewStatus">
+            <span class="text-gray-400">Hav you done your task?</span>
+            <p class="text-gray-400 mt-4">Title of the task</p>
+            <input myAtributForId="" type="text" id="tasksNewTitle"
+              class="taskTitle w-full rounded-md border border-gray-600 bg-gray-900 text-white p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4"
+              placeholder="Type your new task here..."></input>
+            <span class="text-gray-400">Description of the task</span>
+            <input myAtributForIdd="" type="text" id="tasksNewText"
+              class="w-full rounded-md border border-gray-600 bg-gray-900 text-white p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4"
+              placeholder="Type your new task here..."></input>
+            <button type="button" command="close" commandfor="dialogWindowForRedact"
+              class="inline-flex w-full justify-center rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white hover:bg-red-400  sm:w-auto">
+              Cancel </button>
+            <button type="button" id="buttonChangeTask"
+              onclick="toggleCompleted(tasksNewText.getAttribute('myAtributForId'), tasksNewText.value, tasksNewStatus.checked, tasksNewTitle.value)"
+              class="buttonTask inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500 sm:ml-3 sm:w-auto">
+              Update </button>
+          </form>
+        </el-dialog-panel>
+      </div>
+    </dialog>
+  </el-dialog>
+  <el-dialog>
+    <dialog id="dialogWindowForAdding" aria-labelledby="dialog-title"
+      class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent">
+      <el-dialog-backdrop
+        class="fixed inset-0 bg-gray-900/50 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"></el-dialog-backdrop>
+      <div tabindex="0"
+        class="flex min-h-full items-end justify-center p-4 text-center focus:outline-none sm:items-center sm:p-0">
+        <el-dialog-panel
+          class="relative transform overflow-hidden rounded-lg bg-gray-800 text-left shadow-xl outline -outline-offset-1 outline-white/10 transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-lg data-closed:sm:translate-y-0 data-closed:sm:scale-95">
+          <form class="bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4" id="rewrite">
+            <h3 id="dialog-title" class="text-lg font-semibold text-white mb-2">Add task</h3>
+            <p class="text-sm text-gray-400 mb-4">Please, write the title of exercise and it's full description here
+              which you'd want to see in your app</p>
+            <span class="text-gray-400">Your title</span>
+            <input myAtributForIdd="" type="text" id="newTasksTitle"
+              class="taskTitle w-full rounded-md border border-gray-600 bg-gray-900 text-white p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4"
+              placeholder="Type your new task here...">
+            <span class="text-gray-400">Description of the task</span>
+            <input myAtributForIdd="" type="text" id="newTasksText" minlength="0" maxlength="500"
+              class="w-full rounded-md border border-gray-600 bg-gray-900 text-white p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4"
+              placeholder="Type your new task here...">
+            <button type="button" command="close" commandfor="dialogWindowForAdding"
+              class="inline-flex w-full justify-center rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white hover:bg-red-400  sm:w-auto">
+              Cancel </button>
+            <button id="buttonAddTask" type="button"
+              onclick="createTodo(newTasksText.value.trim(), newTasksTitle.value.trim())"
+              class="buttonTask inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500 sm:ml-3 sm:w-auto">
+              Add new task </button>
+          </form>
+        </el-dialog-panel>
+      </div>
+    </dialog>
+  </el-dialog>
+  <h1 class="text-4xl">Todo App</h1>
+  <form id="todo-form" class="mb-5 mt-2">
+    <button command="show-modal" commandfor="dialogWindowForAdding"
+      class="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
+      type="button">Add</button>
+    <span class="font-bold">Press the button "Add" if you want to add new task</span>
+  </form>
+  <table class="ml-3 table-auto w-full border-2 border-black">
+    <thead>
+      <tr class="bg-gray-200">
+        <th class="border border-black px-4 py-2">Title</th>
+        <th class="border border-black px-4 py-2">Description</th>
+        <th class="border border-black px-4 py-2">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="todo-list"></tbody>
+  </table>
+  <script>
+    const API_URL = "/todos";
+    const todoForm = document.getElementById("todo-form");
+    const todoInput = document.getElementById("todo-input");
+    const todoList = document.getElementById("todo-list");
+    const todos = [];
+
+    $('.taskTitle').on('change', function () {
+      if ($(this).val().length < 5) {
+        if ($(this).siblings('.titleError').length == 0) {
+          $(this).after('<p class="titleError text-red-500 text-sm mb-4">Title must be at least 5 characters long</p>');
         }
+        $('.buttonTask').addClass('cursor-not-allowed opacity-50');
+      } else if ($(this).siblings('.titleError').length > 100) {
+        if ($('.titleError').length == 0) {
+          $(this).after('<p class="titleError text-red-500 text-sm mb-4">Title must be lower than 100 characters long</p>');
+        }
+        $('.buttonTask').addClass('cursor-not-allowed opacity-50 disabled');
+      } else {
+        $('.titleError').remove();
+        $('.buttonTask').removeClass('cursor-not-allowed opacity-50 disabled');
+      }
+    });
+
+    $('#newTasksText').on('change', function () {
+      if ($('#newTasksText').val().length > 500) {
+        if ($('#textError').length == 0) {
+          $('#newTasksText').after('<p id="textError" class="text-red-500 text-sm mb-4">Title must be lower than 500 characters long</p>');
+        }
+        $('#buttonAddTask').addClass('cursor-not-allowed opacity-50 disabled');
+      } else {
+        $('#textError').remove();
+        $('#buttonAddTask').removeClass('cursor-not-allowed opacity-50 disabled');
+      }
+    });
+
+    $('#tasksNewText').on('change', function () {
+      if ($('#tasksNewText').val().length > 500) {
+        if ($('#textErrorChanging').length == 0) {
+          $('#tasksNewText').after('<p id="textErrorChanging" class="text-red-500 text-sm mb-4">Title must be lower than 500 characters long</p>');
+        }
+        $('#buttonChangeTask').addClass('cursor-not-allowed opacity-50 disabled');
+      } else {
+        $('#textErrorChanging').remove();
+        $('#buttonChangeTask').removeClass('cursor-not-allowed opacity-50 disabled');
+      }
+    });
+    $(document).ready(async function () {
+      const res = await fetch(API_URL);
+      let todo = await res.json();
+      todos.push(...todo);
+      console.log(todos);
+    });
+
+    async function loadTodos() {
+      const todos = await fetchTodos();
+      renderTodos(todos);
+    }
+
+    async function fetchTodos() {
+      const response = await fetch(API_URL);
+      const todos = await response.json();
+      return todos;
+    }
+
+    function renderTodos(todos) {
+      todoList.innerHTML = "";
+      todos.forEach((todo) => {
+        const tableRow = createTodoElement(todo);
+        todoList.appendChild(tableRow);
       });
+    }
 
-      async function loadTodos() {
-        const todos = await fetchTodos();
-        renderTodos(todos);
+    function createTodoElement(todo) {
+      const tr = document.createElement("tr");
+      tr.id = `line-${todo.id}`;
+      console.log(tr.id);
+      tr.innerHTML = `
+    <td id = "curentBoxTitle-${todo.id}" class="border border-black px-4 py-2 font-bold ${todo.completed ? "completed" : ""}">${todo.mainTitle}
+    </td>
+    <td id = "curentBoxText-${todo.id}" class="max-w-[20ch] overflow-hidden text-ellipsis whitespace-nowrap border border-black pxd-4 py-2 text-sm text-gray-600">
+      ${todo.title}
+    </td>
+
+    <td class="border border-black px-4 py-2">
+      <button class="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1 px-2 border-2 border-blue-500 hover:border-nsparent rounded" id="taskButton-${todo.id}" onclick="changeClass(${todo.id})">${todo.completed ? "Uncomplete" : "Complete"} </button>
+      <button class="bg-transparent hover:bg-red-500 text-red-700 font-semibold hover:text-white py-1 px-2 border-2 border-red-500 hover:border-transparent rounded" onclick="deleteTodo(${todo.id})">Delete</button>
+      <button command="show-modal" commandfor="dialogWindowForRedact" onclick="openModaleWindow(${todo.id})" class="bg-transparent hover:bg-green-500 text-green-700 font-semibold hover:text-white py-1 px-2 border-2 border-green-500 hover:border-transparent rounded">Rewrite</button>
+    </td>
+  `;
+
+      return tr;
+    }
+    async function openModaleWindow(id) {
+      const reques = await fetch(`${API_URL}/${id}`);
+      const gettedTodo = await reques.json();
+      $('#tasksNewTitle').val(gettedTodo.mainTitle);
+      $('#tasksNewText').val(gettedTodo.title);
+      $('#tasksNewStatus').prop('checked', gettedTodo.completed);
+      $('#tasksNewText').attr('myAtributForId', id);
+    }
+
+    async function toggleCompleted(id, text, bool, title) {
+      if (title.length < 5 || title.length > 100) return;
+      const idFromButton = document.getElementById(`taskButton-${id}`);
+      const curentBoxTitle = document.getElementById(`curentBoxTitle-${id}`);
+      const curentBoxText = document.getElementById(`curentBoxText-${id}`);
+
+      const reques = await fetch(`${API_URL}/${id}`, {//отправляю на бекенд запрос
+        method: "PUT",
+        body: JSON.stringify({ completed: bool, title: text, mainTitle: title }),
+        headers: { "Content-Type": "application/json" }
+      });
+      const gettedTodo = await reques.json();
+
+      if (reques.status == 200) { // проверяю все ли прошло успешно
+        document.getElementById("dialogWindowForRedact").close();
+        curentBoxTitle.textContent = gettedTodo.mainTitle;
+        curentBoxText.textContent = gettedTodo.title;
+
+        if (gettedTodo.completed == true) {//меня строчку на "выполнено" если пользователь выбрал кнопку "выполнить" 
+          curentBoxTitle.classList.add("completed");
+          curentBoxText.classList.add("completed");
+          idFromButton.textContent = "Uncomplete";
+        } else { //меня строчку на "выполнить" если пользователь выбрал кнопку "выполнено" 
+          idFromButton.textContent = "Complete";
+          curentBoxTitle.classList.remove("completed");
+          curentBoxText.classList.remove("completed");
+        }
       }
+    }
 
-      async function fetchTodos() {
-        const response = await fetch(API_URL);
-        const todos = await response.json();
-        return todos;
+    async function changeClass(id) {
+      const idFromButton = document.getElementById(`taskButton-${id}`);
+      const curentBoxTitle = document.getElementById(`curentBoxTitle-${id}`);
+      const curentBoxText = document.getElementById(`curentBoxText-${id}`);
+      const todo = todos.find(findingTodo => findingTodo.id == id)
+      text = todo.title;
+      title = todo.mainTitle;
+
+      const reques = await fetch(`${API_URL}/${id}`, {//отправляю на бекенд запрос
+        method: "PUT",
+        body: JSON.stringify({ completed: !Boolean(todo.completed), title: text, mainTitle: title }),
+        headers: { "Content-Type": "application/json" }
+      });
+      const gettedTodo = await reques.json();
+
+      if (reques.status == 200) { // проверяю все ли прошло успешно
+        todo.completed = gettedTodo.completed;
+
+        if (gettedTodo.completed == true) {//меня строчку на "выполнено" если пользователь выбрал кнопку "выполнить" 
+          curentBoxTitle.classList.add("completed");
+          curentBoxText.classList.add("completed");
+          idFromButton.textContent = "Uncomplete";
+        } else { //меня строчку на "выполнить" если пользователь выбрал кнопку "выполнено" 
+          idFromButton.textContent = "Complete";
+          curentBoxTitle.classList.remove("completed");
+          curentBoxText.classList.remove("completed");
+        }
+
       }
-
-      function renderTodos(todos) {
-        todoList.innerHTML = "";
-        todos.forEach((todo) => {
-          const todoElement = createTodoElement(todo);
-          todoList.appendChild(todoElement);
-        });
+    }
+    async function createTodo(text, title) {
+      if (title.length < 5 || title.length > 100) return;
+      const reques = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ title: text, completed: false, mainTitle: title }),
+        headers: { "Content-Type": "application/json" },
+      });
+      if (reques.status == 200) {
+        document.getElementById("dialogWindowForAdding").close();
+        $('#newTasksText').val("");
+        $('#newTasksTitle').val("");
+        const task = await reques.json();
+        console.log(task)
+        const tableRow = createTodoElement(task);
+        todoList.appendChild(tableRow);
+        todos.push(task);
       }
+    }
+    async function deleteTodo(id) {
+      const reques = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      if (reques.status == 200) {
+        $(`#line-${id}`).remove();
 
-      function createTodoElement(todo) {
-        const div = document.createElement("div");
-        div.classList.add("todo");
-        div.innerHTML = `
-                <span class="${todo.completed ? "completed" : ""}">${
-          todo.title
-        }</span>
-                <div>
-                    <button onclick="toggleCompleted(${todo.id})">${
-          todo.completed ? "Uncomplete" : "Complete"
-        }</button>
-                    <button onclick="deleteTodo(${todo.id})">Delete</button>
-                </div>
-            `;
-        return div;
       }
+    }
+    loadTodos(); 
+  </script>
+</body>
 
-      async function createTodo(todo) {
-        await fetch(API_URL, {
-          method: "POST",
-          body: JSON.stringify(todo),
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      async function toggleCompleted(id) {
-        const todo = await getTodo(id);
-        const updatedTodo = { ...todo, completed: !todo.completed };
-        await updateTodo(updatedTodo);
-        loadTodos();
-      }
-
-      async function deleteTodo(id) {
-        await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-        loadTodos();
-      }
-
-      async function getTodo(id) {
-        const response = await fetch(`${API_URL}/${id}`);
-        const todo = await response.json();
-        return todo;
-      }
-
-      async function updateTodo(todo) {
-        await fetch(`${API_URL}/${todo.id}`, {
-          method: "PUT",
-          body: JSON.stringify(todo),
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      loadTodos;
-    </script>
-  </body>
 </html>
