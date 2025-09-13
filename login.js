@@ -134,4 +134,9 @@ app.delete('/todos/:id', function (req, res) {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.listen(3010);
+const PORT = process.env.PORT || 3010;
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+
