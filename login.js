@@ -5,9 +5,9 @@ const path = require('path');
 
 const connection = mysql.createConnection({
   host: "localhost",
-  user: "root", 
+  user: "root",
   database: "todo",
-  password: "qweQWE123;", 
+  password: "qweQWE123;",
 });
 
 const app = express();
@@ -49,19 +49,30 @@ app.post('/auth', function (req, res) {
 });
 
 app.post('/createuser', function (req, res) {
-  const user_id = req.body.user;
+  const userId = req.body.user;
   const user_psw = req.body.pass;
-  connection.query('SELECT * FROM accounts WHERE username = ?', [user_id], function (err, results) {
+  let errors = {};
+
+  if (userId.length < 3) {
+    errors.username = "Username has to be at least 3 characters long";
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return res.json({ errors });
+  }
+
+  connection.query('SELECT * FROM accounts WHERE username = ?', [userId], function (err, results) {
     if (err) throw err;
+
     if (results.length > 0) {
-      res.send('User is taken');
+      res.json({ errors: { username: ['User is taken'] } });
     } else {
       connection.query(
         'INSERT INTO accounts(username, password) VALUES (?, ?)',
-        [user_id, user_psw],
-        function (err) { if (err) console.log(err); }
+        [userId, user_psw],
+        function (err) { if (err) throw err; }
       );
-      res.send("pass");
+      res.json({ success: true });
     }
   });
 });
@@ -73,56 +84,100 @@ app.get('/home', function (req, res) {
     res.send('Please login to view this page!');
   }
 });
+
 app.get('/todos/:id', function (req, res) {
   const id = parseInt(req.params.id);
   connection.query('SELECT * FROM tasks WHERE id = ?', [id], function (err, results) {
     res.json(results[0]);
   });
 });
+
 app.get('/todos', function (req, res) {
-  const user_id = req.session.username;
-  connection.query('SELECT * FROM tasks WHERE user_id = ?', [user_id], function (err, results) {
+  const userId = req.session.username;
+
+  connection.query('SELECT * FROM tasks WHERE user_id = ?', [userId], function (err, results) {
     res.json(results);
   });
 });
 
+function validateTaskInput(mainTitle, title) {
+  let errors = {};
+
+  if (mainTitle.trim().length < 3) {
+    errors.mainTitle = "Main title must be at least 3 characters";
+  } else if (mainTitle.trim().length > 100) {
+    errors.mainTitle = "Main title must be at most 100 characters";
+  } else if (!/[a-zA-Zа-яА-Я0-9]/.test(mainTitle.trim())) {
+    errors.mainTitle = "Main title must contain letters or numbers";
+  }
+
+  return errors;
+}
 app.post('/todos', function (req, res) {
-  const user_id = req.session.username;
+  const userId = req.session.username;
   const title = req.body.title;
   const completed = Boolean(req.body.completed);
   const mainTitle = req.body.mainTitle;
   let id;
-  
-  connection.query('INSERT INTO tasks(mainTitle, user_id, title, completed) VALUES (?, ?, ?, ?)', [mainTitle, user_id, title, completed], function (err, results) {
-    id = results.insertId;
-    connection.query('SELECT * FROM tasks WHERE id = ?', [id], function (err, results) {
+  let errors = validateTaskInput(mainTitle, title, userId);
 
-      if (err) throw err;
-      res.json(results[0]);
+  if (Object.keys(errors).length > 0) {
+    return res.json({ errors });
+  }
+
+  connection.query('SELECT * FROM tasks WHERE mainTitle = ? AND user_id = ?', [mainTitle, userId], function (err, results) {
+    if (results.length > 0) {
+      return res.json({ errors: { mainTitle: "You already have a task with this main title" } });
+    }
+
+    connection.query('INSERT INTO tasks(mainTitle, user_id, title, completed) VALUES (?, ?, ?, ?)', [mainTitle, userId, title, completed], function (err, results) {
+      id = results.insertId;
+
+      connection.query('SELECT * FROM tasks WHERE id = ?', [id], function (err, results) {
+        if (err) {
+          throw err;
+        }
+
+        res.json(results[0]);
+      });
     });
-
   });
-
 });
+
+
+
 
 app.put('/todos/:id', function (req, res) {
-  const id = parseInt(req.params.id);//беру id задачи
-  const text = req.body.title; //превращаю в бул отправленное значение
-  const completed = req.body.completed; //превращаю в бул отправленное значение
+  const id = parseInt(req.params.id);
+  const text = req.body.title;
+  const userId = req.session.username;
+  const completed = req.body.completed;
   const mainTitle = req.body.mainTitle;
+  let errors = validateTaskInput(mainTitle, text);
 
-  connection.query('UPDATE tasks SET completed = ?, title = ?, mainTitle = ? WHERE id = ?', [completed, text, mainTitle, id], function (err) { // меняю таблицу
+  if (Object.keys(errors).length > 0) {
+    return res.json({ errors });
+  }
 
-    if (err) throw err;// если есть ошибка то вывожу ее 
-    res.status(200) // назад отправляю статус и бул что бы на фронте проверить все ли получилось
-  });
-  connection.query('SELECT * FROM tasks WHERE id = ?', [id], function (err, results) {
+  connection.query('SELECT * FROM tasks WHERE mainTitle = ? AND user_id = ? AND id != ?', [mainTitle, userId, id], function (err, results) {
+    if (results.length > 0) {
+      return res.json({ errors: { mainTitle: "You already have a task with this main title" } });
+    }
+    connection.query('UPDATE tasks SET completed = ?, title = ?, mainTitle = ? WHERE id = ?', [completed, text, mainTitle, id], function (err) {
+      if (err) {
+        throw err;
+      }
 
-    if (err) throw err;
-    res.json(results[0]);
+      connection.query('SELECT * FROM tasks WHERE id = ?', [id], function (err, results) {
+        if (err) {
+          throw err
+        };
+
+        res.json(results[0]).status(200);
+      });
+    });
   });
 });
-
 
 
 
